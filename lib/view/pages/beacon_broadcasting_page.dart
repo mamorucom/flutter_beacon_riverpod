@@ -36,7 +36,7 @@ class _BeaconBroadcastingPageState extends ConsumerState<BeaconBroadcastingPage>
 
   @override
   void dispose() {
-    WidgetsBinding.instance?.removeObserver(this);
+    WidgetsBinding.instance.removeObserver(this);
     ref.read(bluetoothAuthStateProvider.notifier).cancel();
     super.dispose();
   }

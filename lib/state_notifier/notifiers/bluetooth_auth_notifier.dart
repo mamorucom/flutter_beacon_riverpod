@@ -9,14 +9,62 @@ final bluetoothAuthStateProvider = StateNotifierProvider.autoDispose<
     BluetoothAuthStateNotifier, BluetoothAuthState>((ref) {
   return BluetoothAuthStateNotifier(
     ref.read(beaconAdapterProvider),
+    // ref.watch(bluetoothStateStreamProvider),
   );
 });
+
+// Bluetooth ON/OFFチェック
+final bluetoothStateStreamProvider =
+    StreamProvider.autoDispose<BluetoothState>((ref) {
+  final adapter = ref.watch(beaconAdapterProvider);
+
+  return adapter.listeningBluetoothState();
+});
+
+// ビーコンScan初期化/停止
+final scanBeaconFutureProvider = FutureProvider.autoDispose<void>((ref) {
+  final adapter = ref.watch(beaconAdapterProvider);
+  final bluetoothStateStream = ref.watch(bluetoothStateStreamProvider);
+
+  if (bluetoothStateStream.asData?.value == null) {
+    return Future.value();
+  }
+
+  final bluetoothState = bluetoothStateStream.value!;
+
+  if (bluetoothState == BluetoothState.stateOn) {
+    // ビーコンスキャン初期化
+    return adapter.initializeScanning();
+  } else if (bluetoothState == BluetoothState.stateOff) {
+    // ビーコンスキャン停止
+    return adapter.pauseScanBeacon();
+  }
+});
+
+// 権限取得
+final bluetoothAuthStateFutureProvider =
+    FutureProvider.autoDispose<BluetoothAuthState>((ref) {
+  final adapter = ref.watch(beaconAdapterProvider);
+
+  return adapter.getAllRequirements();
+});
+
+// final bluetoothAuthStateStreamProvider =
+//     StreamProvider.autoDispose<BluetoothAuthState>((ref) {
+//   final adapter = ref.watch(beaconAdapterProvider);
+
+//   return adapter.getAllRequirements();
+// });
 
 class BluetoothAuthStateNotifier extends StateNotifier<BluetoothAuthState> {
   BluetoothAuthStateNotifier(
     this._beaconAdapter,
+    // this._bluetoothStateStream,
   ) : super(BluetoothAuthState());
+
   final BeaconAdapterBase _beaconAdapter;
+  // final AsyncValue<BluetoothState> _bluetoothStateStream;
+  // final BluetoothState _bluetoothStateStream;
 
   ///
   /// アプリ側の位置情報権限許可リクエスト
@@ -43,17 +91,17 @@ class BluetoothAuthStateNotifier extends StateNotifier<BluetoothAuthState> {
   /// Bluetooth ON/OFFチェック
   ///
   void listeningBluetoothState() {
-    Stream<BluetoothState> observable =
-        _beaconAdapter.listeningBluetoothState();
-    observable.listen((bluetoothState) async {
-      if (bluetoothState == BluetoothState.stateOn) {
-        // ビーコンスキャン初期化
-        initScanBeacon();
-      } else if (bluetoothState == BluetoothState.stateOff) {
-        // ビーコンスキャン停止
-        pauseScanBeacon();
-      }
-    });
+    // Stream<BluetoothState> observable =
+    //     _beaconAdapter.listeningBluetoothState();
+    // observable.listen((bluetoothState) async {
+    //   if (bluetoothState == BluetoothState.stateOn) {
+    //     // ビーコンスキャン初期化
+    //     initScanBeacon();
+    //   } else if (bluetoothState == BluetoothState.stateOff) {
+    //     // ビーコンスキャン停止
+    //     pauseScanBeacon();
+    //   }
+    // });
   }
 
   ///

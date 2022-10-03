@@ -39,15 +39,19 @@ abstract class BeaconAdapterBase {
   ///
   Future<BluetoothAuthState> getAllRequirements();
 
+  // ///
+  // /// レンジング監視開始
+  // ///
+  // void startRanging(bool mounted);
   ///
   /// レンジング監視開始
   ///
-  void startRanging(bool mounted);
+  Stream<RangingResult> watchRanging();
 
-  ///
-  /// レンジングによる監視
-  ///
-  Stream<List<Beacon>> listeningRanging();
+  // ///
+  // /// レンジングによる監視
+  // ///
+  // Stream<List<Beacon>> listeningRanging();
 
   ///
   /// ビーコンスキャン停止
@@ -82,8 +86,8 @@ final beaconAdapterProvider = Provider.autoDispose<BeaconAdapterBase>((ref) {
 class BeaconAdapter implements BeaconAdapterBase {
   BeaconAdapter();
 
-  StreamController<List<Beacon>>? _streamBeaconRangingController =
-      StreamController();
+  // StreamController<List<Beacon>>? _streamBeaconRangingController =
+  //     StreamController();
   StreamSubscription<RangingResult>? _streamRanging;
 
   @override
@@ -148,25 +152,37 @@ class BeaconAdapter implements BeaconAdapterBase {
       ),
     ];
 
-    _streamRanging = flutterBeacon.ranging(regions).listen(
-      (RangingResult result) {
-        print(result);
-        if (mounted) {
-          // if (isMounted()) {
-          final beacons = <Beacon>[];
-          beacons.addAll(result.beacons);
-          beacons.sort(_compareParameters);
-          // listenしているものにビーコン情報を届ける (1)
-          _streamBeaconRangingController?.sink.add(beacons);
-        }
-      },
-    );
+    // _streamRanging = flutterBeacon.ranging(regions);
+    // _streamRanging = flutterBeacon.ranging(regions).listen(
+    //   (RangingResult result) {
+    //     print(result);
+    //     if (mounted) {
+    //       // if (isMounted()) {
+    //       final beacons = <Beacon>[];
+    //       beacons.addAll(result.beacons);
+    //       beacons.sort(_compareParameters);
+    //       // listenしているものにビーコン情報を届ける (1)
+    //       _streamBeaconRangingController?.sink.add(beacons);
+    //     }
+    //   },
+    // );
   }
 
   @override
-  Stream<List<Beacon>> listeningRanging() {
-    return _streamBeaconRangingController!.stream;
+  Stream<RangingResult> watchRanging() {
+    final regions = <Region>[
+      Region(
+        identifier: 'Cubeacon',
+        proximityUUID: kProximityUUID,
+      ),
+    ];
+    return flutterBeacon.ranging(regions);
   }
+
+  // @override
+  // Stream<List<Beacon>> listeningRanging() {
+  //   return _streamBeaconRangingController!.stream;
+  // }
 
   ///
   /// 並び替え

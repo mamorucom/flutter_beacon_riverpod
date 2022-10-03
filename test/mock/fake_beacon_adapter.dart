@@ -14,8 +14,8 @@ class FakeBeaconAdapter implements BeaconAdapterBase {
 
   bool _isBroadcasting = false;
 
-  StreamController<List<Beacon>>? _streamBeaconRangingController =
-      StreamController();
+  // StreamController<List<Beacon>>? _streamBeaconRangingController =
+  //     StreamController();
 
   @override
   Future requestLocationAuthorization() async {
@@ -40,27 +40,27 @@ class FakeBeaconAdapter implements BeaconAdapterBase {
     return Stream.value(BluetoothState.stateOn);
   }
 
-  @override
-  void startRanging(bool mounted) {
-    // ignore: unused_local_variable
-    Timer _timer = Timer.periodic(const Duration(seconds: 1), (Timer t) {
-      // ダミーの信号データを返す(2)
-      final dummyBeaons = [
-        const Beacon(
-          proximityUUID: kProximityUUID,
-          major: kDummyBeaconMajor,
-          minor: kDummyBeaconMinor,
-          accuracy: kDummyAccuracy,
-        ),
-      ];
-      _streamBeaconRangingController?.sink.add(dummyBeaons);
-    });
-  }
+  // @override
+  // void startRanging(bool mounted) {
+  //   // ignore: unused_local_variable
+  //   Timer _timer = Timer.periodic(const Duration(seconds: 1), (Timer t) {
+  //     // ダミーの信号データを返す(2)
+  //     final dummyBeaons = [
+  //       const Beacon(
+  //         proximityUUID: kProximityUUID,
+  //         major: kDummyBeaconMajor,
+  //         minor: kDummyBeaconMinor,
+  //         accuracy: kDummyAccuracy,
+  //       ),
+  //     ];
+  //     _streamBeaconRangingController?.sink.add(dummyBeaons);
+  //   });
+  // }
 
-  @override
-  Stream<List<Beacon>> listeningRanging() {
-    return _streamBeaconRangingController!.stream;
-  }
+  // @override
+  // Stream<List<Beacon>> listeningRanging() {
+  //   return _streamBeaconRangingController!.stream;
+  // }
 
   @override
   Future pauseScanBeacon() {
@@ -103,5 +103,11 @@ class FakeBeaconAdapter implements BeaconAdapterBase {
   @override
   Future<bool> isBroadcasting() {
     return Future.value(_isBroadcasting);
+  }
+
+  @override
+  Stream<RangingResult> watchRanging() {
+    // TODO: implement watchRanging
+    throw UnimplementedError();
   }
 }
