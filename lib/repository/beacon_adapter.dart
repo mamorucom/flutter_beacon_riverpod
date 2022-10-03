@@ -1,12 +1,13 @@
 // ignore_for_file: avoid_print
 
-import 'dart:async';
 import 'dart:core';
 import 'package:flutter/services.dart';
 import 'package:flutter_beacon/flutter_beacon.dart';
 import 'package:flutter_beacon_riverpod/state_notifier/states/bluetooth_auth_state.dart';
 import 'package:flutter_beacon_riverpod/util/constants.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../state_notifier/states/beacon_scanning_state.dart';
 
 abstract class BeaconAdapterBase {
   ///
@@ -53,10 +54,10 @@ abstract class BeaconAdapterBase {
   // ///
   // Stream<List<Beacon>> listeningRanging();
 
-  ///
-  /// ビーコンスキャン停止
-  ///
-  Future pauseScanBeacon();
+  // ///
+  // /// ビーコンスキャン停止
+  // ///
+  // Future pauseScanBeacon();
 
   ///
   /// キャンセル(破棄)処理
@@ -79,16 +80,132 @@ abstract class BeaconAdapterBase {
   Future<bool> isBroadcasting();
 }
 
+// Bluetooth ON/OFFチェック
+final bluetoothStateStreamProvider =
+    StreamProvider.autoDispose<BluetoothState>((ref) {
+  final adapter = ref.watch(beaconAdapterProvider);
+
+  return adapter.listeningBluetoothState();
+});
+
+// ビーコンScan初期化/停止
+final scanBeaconFutureProvider = FutureProvider.autoDispose<void>((ref) {
+  final adapter = ref.watch(beaconAdapterProvider);
+  final bluetoothStateStream = ref.watch(bluetoothStateStreamProvider);
+
+  if (bluetoothStateStream.asData?.value == null) {
+    return Future.value();
+  }
+
+  final bluetoothState = bluetoothStateStream.value!;
+
+  if (bluetoothState == BluetoothState.stateOn) {
+    // ビーコンスキャン初期化
+    return adapter.initializeScanning();
+  } else if (bluetoothState == BluetoothState.stateOff) {
+    // // ビーコンスキャン停止
+    // return adapter.pauseScanBeacon();
+  }
+});
+
+// 権限取得
+final bluetoothAuthStateFutureProvider =
+    FutureProvider.autoDispose<BluetoothAuthState>((ref) {
+  final adapter = ref.watch(beaconAdapterProvider);
+
+  return adapter.getAllRequirements();
+});
+
+/// ビーコンリストのStream
+/// - ※今回はなくても良いがBeaconリストをView用のデータに加工したいときに利用する。
+final beaconScanningStateStreamProvider =
+    StreamProvider.autoDispose<BeaconScanningState>((ref) {
+  final beaconListStream = ref.watch(beaconListStreamProvider);
+
+  final beacons = beaconListStream.asData?.value ?? [];
+
+  return Stream.value(BeaconScanningState(beacons: beacons));
+});
+
+/// ビーコンリストのStream（並び替え対応）
+final sortedBeaconListStreamProvider =
+    StreamProvider.autoDispose<List<Beacon>>((ref) {
+  final beaconListStream = ref.watch(beaconListStreamProvider);
+
+  final beacons = beaconListStream.asData?.value ?? [];
+
+  // 1:proximityUUID, 2:major, 3:minorの順に並び替え
+  beacons.sort(((a, b) {
+    int compare = a.proximityUUID.compareTo(b.proximityUUID);
+
+    if (compare == 0) {
+      compare = a.major.compareTo(b.major);
+    }
+
+    if (compare == 0) {
+      compare = a.minor.compareTo(b.minor);
+    }
+
+    return compare;
+  }));
+
+  return Stream.value(beacons);
+});
+
+/// ビーコンリストのStream
+final beaconListStreamProvider =
+    StreamProvider.autoDispose<List<Beacon>>((ref) {
+  final beaconRangingStream = ref.watch(beaconRangingStreamProvider);
+
+  if (beaconRangingStream.asData?.value == null) {
+    return const Stream.empty();
+  }
+
+  final beaconRangingResult = beaconRangingStream.asData!.value;
+
+  print(beaconRangingResult);
+
+  final beacons = <Beacon>[];
+  beacons.addAll(beaconRangingResult.beacons);
+  // beacons.sort(_compareParameters);
+
+  return Stream.value(beacons);
+});
+
+/// ビーコンレンジングによる受信結果のStream
+final beaconRangingStreamProvider =
+    StreamProvider.autoDispose<RangingResult>((ref) {
+  final bluetoothAuthStateFuture = ref.watch(bluetoothAuthStateFutureProvider);
+  final adapter = ref.watch(beaconAdapterProvider);
+
+  if (bluetoothAuthStateFuture.asData?.value == null) {
+    return const Stream.empty();
+  }
+
+  final bluetoothAuthState = bluetoothAuthStateFuture.asData!.value;
+  // 権限チェック
+  if (!bluetoothAuthState.authorizationStatusOk ||
+      !bluetoothAuthState.locationServiceEnabled ||
+      !bluetoothAuthState.bluetoothEnabled) {
+    return const Stream.empty();
+  }
+
+  return adapter.watchRanging();
+});
+
 final beaconAdapterProvider = Provider.autoDispose<BeaconAdapterBase>((ref) {
   return BeaconAdapter();
 });
 
+///
+/// BeaconAdapter実装クラス
+///
 class BeaconAdapter implements BeaconAdapterBase {
   BeaconAdapter();
 
   // StreamController<List<Beacon>>? _streamBeaconRangingController =
   //     StreamController();
-  StreamSubscription<RangingResult>? _streamRanging;
+  // StreamSubscription<RangingResult>? _streamRanging;
 
   @override
   Future requestLocationAuthorization() async {
@@ -143,30 +260,30 @@ class BeaconAdapter implements BeaconAdapterBase {
     );
   }
 
-  @override
-  void startRanging(bool mounted) {
-    final regions = <Region>[
-      Region(
-        identifier: 'Cubeacon',
-        proximityUUID: kProximityUUID,
-      ),
-    ];
+  // @override
+  // void startRanging(bool mounted) {
+  //   final regions = <Region>[
+  //     Region(
+  //       identifier: 'Cubeacon',
+  //       proximityUUID: kProximityUUID,
+  //     ),
+  //   ];
 
-    // _streamRanging = flutterBeacon.ranging(regions);
-    // _streamRanging = flutterBeacon.ranging(regions).listen(
-    //   (RangingResult result) {
-    //     print(result);
-    //     if (mounted) {
-    //       // if (isMounted()) {
-    //       final beacons = <Beacon>[];
-    //       beacons.addAll(result.beacons);
-    //       beacons.sort(_compareParameters);
-    //       // listenしているものにビーコン情報を届ける (1)
-    //       _streamBeaconRangingController?.sink.add(beacons);
-    //     }
-    //   },
-    // );
-  }
+  //   // _streamRanging = flutterBeacon.ranging(regions);
+  //   // _streamRanging = flutterBeacon.ranging(regions).listen(
+  //   //   (RangingResult result) {
+  //   //     print(result);
+  //   //     if (mounted) {
+  //   //       // if (isMounted()) {
+  //   //       final beacons = <Beacon>[];
+  //   //       beacons.addAll(result.beacons);
+  //   //       beacons.sort(_compareParameters);
+  //   //       // listenしているものにビーコン情報を届ける (1)
+  //   //       _streamBeaconRangingController?.sink.add(beacons);
+  //   //     }
+  //   //   },
+  //   // );
+  // }
 
   @override
   Stream<RangingResult> watchRanging() {
@@ -184,31 +301,31 @@ class BeaconAdapter implements BeaconAdapterBase {
   //   return _streamBeaconRangingController!.stream;
   // }
 
-  ///
-  /// 並び替え
-  ///
-  int _compareParameters(Beacon a, Beacon b) {
-    int compare = a.proximityUUID.compareTo(b.proximityUUID);
+  // ///
+  // /// 並び替え
+  // ///
+  // int _compareParameters(Beacon a, Beacon b) {
+  //   int compare = a.proximityUUID.compareTo(b.proximityUUID);
 
-    if (compare == 0) {
-      compare = a.major.compareTo(b.major);
-    }
+  //   if (compare == 0) {
+  //     compare = a.major.compareTo(b.major);
+  //   }
 
-    if (compare == 0) {
-      compare = a.minor.compareTo(b.minor);
-    }
+  //   if (compare == 0) {
+  //     compare = a.minor.compareTo(b.minor);
+  //   }
 
-    return compare;
-  }
+  //   return compare;
+  // }
 
-  @override
-  Future pauseScanBeacon() async {
-    _streamRanging?.pause();
-  }
+  // @override
+  // Future pauseScanBeacon() async {
+  //   _streamRanging?.pause();
+  // }
 
   @override
   Future<void> cancel() async {
-    _streamRanging?.cancel();
+    // _streamRanging?.cancel();
     flutterBeacon.stopBroadcast();
     flutterBeacon.close;
   }

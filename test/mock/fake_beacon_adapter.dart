@@ -107,7 +107,26 @@ class FakeBeaconAdapter implements BeaconAdapterBase {
 
   @override
   Stream<RangingResult> watchRanging() {
-    // TODO: implement watchRanging
-    throw UnimplementedError();
+    final dummyBeaons = [
+      const Beacon(
+        proximityUUID: kProximityUUID,
+        major: kDummyBeaconMajor,
+        minor: kDummyBeaconMinor,
+        accuracy: kDummyAccuracy,
+      ),
+    ];
+
+    final json = {
+      'region': {
+        'identifier': 'beacon',
+        'major': null,
+        'minor': null,
+      },
+      'beacons': dummyBeaons,
+    };
+
+    final rangingResult = RangingResult.from(json);
+
+    return Stream.value(rangingResult);
   }
 }

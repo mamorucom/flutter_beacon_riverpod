@@ -18,13 +18,13 @@ class FakeBluetoothAuthNotifier extends StateNotifier<BluetoothAuthState>
     throw UnimplementedError();
   }
 
-  @override
-  Future initScanBeacon() {
-    throw UnimplementedError();
-  }
+  // @override
+  // Future initScanBeacon() {
+  //   throw UnimplementedError();
+  // }
 
-  @override
-  void listeningBluetoothState() {}
+  // @override
+  // void listeningBluetoothState() {}
 
   @override
   Future openBluetoothSettings() {
@@ -36,10 +36,10 @@ class FakeBluetoothAuthNotifier extends StateNotifier<BluetoothAuthState>
     throw UnimplementedError();
   }
 
-  @override
-  Future pauseScanBeacon() {
-    throw UnimplementedError();
-  }
+  // @override
+  // Future pauseScanBeacon() {
+  //   throw UnimplementedError();
+  // }
 
   @override
   Future requestLocationAuthorization() {

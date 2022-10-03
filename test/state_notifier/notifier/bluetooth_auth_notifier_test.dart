@@ -183,7 +183,9 @@ void main() {
       await bluetoothAuthNotifier.requestLocationAuthorization();
       await bluetoothAuthNotifier.openBluetoothSettings();
 
-      bluetoothAuthNotifier.listeningBluetoothState();
+      final bluetoothStateStream = container.read(bluetoothStateStreamProvider);
+
+      // bluetoothAuthNotifier.listeningBluetoothState();
 
       // 適当な時間を設けてメソッド内のlisten以下の処理が実行されるようwaitをしている
       await Future.delayed(const Duration(seconds: 3));
