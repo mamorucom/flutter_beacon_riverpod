@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_beacon_riverpod/state_notifier/notifiers/beacon_scanning_notifier.dart';
 import 'package:flutter_beacon_riverpod/state_notifier/notifiers/bluetooth_auth_notifier.dart';
 import 'package:flutter_beacon_riverpod/state_notifier/states/beacon_scanning_state.dart';
+import 'package:flutter_beacon_riverpod/state_notifier/states/bluetooth_auth_state.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 class BeaconScanningPage extends StatefulHookConsumerWidget {
@@ -61,107 +62,17 @@ class _BeaconScanningPageState extends ConsumerState<BeaconScanningPage>
     final bluetoothAuthNotifier =
         ref.watch(bluetoothAuthStateProvider.notifier);
 
-    // final widget = bluetoothAuthStateFuture.when(
-    //   data: (data) {
-    //     final bluetoothAuthState = data;
-
-    //     return Container();
-    //   },
-    //   error: (error, st) {
-    //     return Container();
-    //   },
-    //   loading: () => const Center(
-    //     child: CircularProgressIndicator(),
-    //   ),
-    // );
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Scan'),
         actions: bluetoothAuthStateFuture.when(
           data: (data) {
             final bluetoothAuthState = data;
-
-            return [
-              if (!bluetoothAuthState.authorizationStatusOk &&
-                  bluetoothAuthState.locationServiceEnabled)
-                IconButton(
-                  icon: const Icon(Icons.portable_wifi_off),
-                  color: Colors.red,
-                  onPressed: () async {
-                    await bluetoothAuthNotifier.requestLocationAuthorization();
-                    if (!mounted) return;
-                    ref.refresh(bluetoothAuthStateFutureProvider);
-                  },
-                ),
-              if (!bluetoothAuthState.locationServiceEnabled)
-                IconButton(
-                  icon: const Icon(Icons.location_off),
-                  color: Colors.red,
-                  onPressed: () async {
-                    if (Platform.isAndroid) {
-                      await bluetoothAuthNotifier.openLocationSettings();
-                      if (!mounted) return;
-                      ref.refresh(bluetoothAuthStateFutureProvider);
-                    } else if (Platform.isIOS) {
-                      await showDialog(
-                        context: context,
-                        builder: (context) {
-                          return AlertDialog(
-                            title: const Text('Location Services Off'),
-                            content: const Text(
-                                'Please enable Location Services on Settings > Privacy > Location Services.'),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(context),
-                                child: const Text('OK'),
-                              ),
-                            ],
-                          );
-                        },
-                      );
-                    }
-                  },
-                ),
-              bluetoothAuthState.bluetoothEnabled
-                  ? IconButton(
-                      icon: const Icon(Icons.bluetooth_connected),
-                      onPressed: () {},
-                      color: Colors.lightBlueAccent,
-                    )
-                  : IconButton(
-                      icon: const Icon(Icons.bluetooth),
-                      onPressed: () async {
-                        if (Platform.isAndroid) {
-                          try {
-                            await bluetoothAuthNotifier.openBluetoothSettings();
-                            if (!mounted) return;
-                            ref.refresh(bluetoothAuthStateFutureProvider);
-                          } on PlatformException catch (e) {
-                            print(e);
-                          }
-                        } else if (Platform.isIOS) {
-                          await showDialog(
-                            context: context,
-                            builder: (context) {
-                              return AlertDialog(
-                                title: const Text('Bluetooth is Off'),
-                                content: const Text(
-                                    'Please enable Bluetooth on Settings > Bluetooth.'),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(context),
-                                    child: const Text('OK'),
-                                  ),
-                                ],
-                              );
-                            },
-                          );
-                        }
-                      },
-                      color: Colors.red,
-                    ),
-            ];
+            return _buildAppBarActions(
+              context: context,
+              bluetoothAuthState: bluetoothAuthState,
+              bluetoothAuthNotifier: bluetoothAuthNotifier,
+            );
           },
           error: (error, st) {
             return [Container()];
@@ -169,13 +80,12 @@ class _BeaconScanningPageState extends ConsumerState<BeaconScanningPage>
           loading: () => [const Center(child: CircularProgressIndicator())],
         ),
       ),
-
       body: beaconScanningStateStream.when(
         data: (data) {
           return _ListView(beaconScanningState: data);
         },
         error: (error, st) {
-          return Container();
+          return Center(child: Text(error.toString()));
         },
         loading: () => const Center(child: CircularProgressIndicator()),
       ),
@@ -219,6 +129,93 @@ class _BeaconScanningPageState extends ConsumerState<BeaconScanningPage>
       //         ).toList(),
       //       ),
     );
+  }
+
+  List<Widget> _buildAppBarActions({
+    required BuildContext context,
+    required BluetoothAuthState bluetoothAuthState,
+    required BluetoothAuthStateNotifier bluetoothAuthNotifier,
+  }) {
+    return [
+      if (!bluetoothAuthState.authorizationStatusOk &&
+          bluetoothAuthState.locationServiceEnabled)
+        IconButton(
+          icon: const Icon(Icons.portable_wifi_off),
+          color: Colors.red,
+          onPressed: () async {
+            await bluetoothAuthNotifier.requestLocationAuthorization();
+            // FutureProviderを更新する
+            ref.refresh(bluetoothAuthStateFutureProvider);
+          },
+        ),
+      if (!bluetoothAuthState.locationServiceEnabled)
+        IconButton(
+          icon: const Icon(Icons.location_off),
+          color: Colors.red,
+          onPressed: () async {
+            if (Platform.isAndroid) {
+              await bluetoothAuthNotifier.openLocationSettings();
+              // FutureProviderを更新する
+              ref.refresh(bluetoothAuthStateFutureProvider);
+            } else if (Platform.isIOS) {
+              await showDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    title: const Text('Location Services Off'),
+                    content: const Text(
+                        'Please enable Location Services on Settings > Privacy > Location Services.'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('OK'),
+                      ),
+                    ],
+                  );
+                },
+              );
+            }
+          },
+        ),
+      bluetoothAuthState.bluetoothEnabled
+          ? IconButton(
+              icon: const Icon(Icons.bluetooth_connected),
+              onPressed: () {},
+              color: Colors.lightBlueAccent,
+            )
+          : IconButton(
+              icon: const Icon(Icons.bluetooth),
+              onPressed: () async {
+                if (Platform.isAndroid) {
+                  try {
+                    await bluetoothAuthNotifier.openBluetoothSettings();
+                    // FutureProviderを更新する
+                    ref.refresh(bluetoothAuthStateFutureProvider);
+                  } on PlatformException catch (e) {
+                    print(e);
+                  }
+                } else if (Platform.isIOS) {
+                  await showDialog(
+                    context: context,
+                    builder: (context) {
+                      return AlertDialog(
+                        title: const Text('Bluetooth is Off'),
+                        content: const Text(
+                            'Please enable Bluetooth on Settings > Bluetooth.'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('OK'),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                }
+              },
+              color: Colors.red,
+            ),
+    ];
   }
 }
 
