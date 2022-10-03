@@ -104,21 +104,21 @@ class BluetoothAuthStateNotifier extends StateNotifier<BluetoothAuthState> {
     // });
   }
 
-  ///
-  /// ビーコンScan初期化
-  ///
-  Future initScanBeacon() async {
-    await _beaconAdapter.initializeScanning();
-    await checkAllRequirements();
-  }
+  // ///
+  // /// ビーコンScan初期化
+  // ///
+  // Future initScanBeacon() async {
+  //   await _beaconAdapter.initializeScanning();
+  //   await checkAllRequirements();
+  // }
 
-  ///
-  /// ビーコンScan停止
-  ///
-  Future pauseScanBeacon() async {
-    await _beaconAdapter.pauseScanBeacon();
-    await checkAllRequirements();
-  }
+  // ///
+  // /// ビーコンScan停止
+  // ///
+  // Future pauseScanBeacon() async {
+  //   await _beaconAdapter.pauseScanBeacon();
+  //   await checkAllRequirements();
+  // }
 
   ///
   /// 権限チェック

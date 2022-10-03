@@ -24,29 +24,29 @@ class _BeaconScanningPageState extends ConsumerState<BeaconScanningPage>
     WidgetsBinding.instance.addObserver(this);
 
     super.initState();
-    ref.read(bluetoothAuthStateProvider.notifier).listeningBluetoothState();
+    // ref.read(bluetoothAuthStateProvider.notifier).listeningBluetoothState();
   }
 
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) async {
-    print('AppLifecycleState = $state');
-    final bluetoothAuthNotifier = ref.read(bluetoothAuthStateProvider.notifier);
+  // @override
+  // void didChangeAppLifecycleState(AppLifecycleState state) async {
+  //   print('AppLifecycleState = $state');
+  //   final bluetoothAuthNotifier = ref.read(bluetoothAuthStateProvider.notifier);
 
-    if (state == AppLifecycleState.resumed) {
-      await bluetoothAuthNotifier.checkAllRequirements();
+  //   if (state == AppLifecycleState.resumed) {
+  //     await bluetoothAuthNotifier.checkAllRequirements();
 
-      final bluetoothAuthState = ref.read(bluetoothAuthStateProvider);
+  //     final bluetoothAuthState = ref.read(bluetoothAuthStateProvider);
 
-      if (bluetoothAuthState.bluetoothEnabled) {
-        await bluetoothAuthNotifier.initScanBeacon();
-      }
-    } else if (state == AppLifecycleState.paused) {}
-  }
+  //     if (bluetoothAuthState.bluetoothEnabled) {
+  //       await bluetoothAuthNotifier.initScanBeacon();
+  //     }
+  //   } else if (state == AppLifecycleState.paused) {}
+  // }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    ref.read(bluetoothAuthStateProvider.notifier).cancel();
+    // ref.read(bluetoothAuthStateProvider.notifier).cancel();
     super.dispose();
   }
 
