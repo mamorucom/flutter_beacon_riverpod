@@ -10,6 +10,7 @@ import 'package:flutter_beacon_riverpod/state_notifier/states/bluetooth_auth_sta
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../repository/beacon_adapter.dart';
+import '../../state_notifier/notifiers/beacon_scanning_notifier.dart';
 
 class BeaconScanningPage extends StatefulHookConsumerWidget {
   const BeaconScanningPage({Key? key}) : super(key: key);

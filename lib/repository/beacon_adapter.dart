@@ -1,14 +1,11 @@
 // ignore_for_file: avoid_print
 
-import 'dart:async';
 import 'dart:core';
 import 'package:flutter/services.dart';
 import 'package:flutter_beacon/flutter_beacon.dart';
 import 'package:flutter_beacon_riverpod/state_notifier/states/bluetooth_auth_state.dart';
 import 'package:flutter_beacon_riverpod/util/constants.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../state_notifier/states/beacon_scanning_state.dart';
 
 abstract class BeaconAdapterBase {
   ///
@@ -123,66 +120,6 @@ final bluetoothAuthStateFutureProvider =
   ref.refresh(initializeScanningFutureProvider);
 
   return adapter.getAllRequirements();
-});
-
-/// BeaconScanningStateのStream
-/// - ※今回はなくても良いがBeaconリストをView用のデータに加工したいときに利用する。
-final beaconScanningStateStreamProvider =
-    StreamProvider.autoDispose<BeaconScanningState>((ref) {
-  final beaconListStream = ref.watch(beaconListStreamProvider);
-
-  return beaconListStream.when(data: (data) {
-    return Stream.value(BeaconScanningState(beacons: data));
-  }, error: (error, st) {
-    return Stream.error('beaconScanningStateStreamProvider error.');
-  }, loading: () {
-    return const Stream.empty();
-  });
-});
-
-/// ビーコンリストのStream（並び替え対応）
-final sortedBeaconListStreamProvider =
-    StreamProvider.autoDispose<List<Beacon>>((ref) {
-  final beaconListStream = ref.watch(beaconListStreamProvider);
-
-  final beacons = beaconListStream.asData?.value ?? [];
-
-  // 1:proximityUUID, 2:major, 3:minorの順に並び替え
-  beacons.sort(((a, b) {
-    int compare = a.proximityUUID.compareTo(b.proximityUUID);
-
-    if (compare == 0) {
-      compare = a.major.compareTo(b.major);
-    }
-
-    if (compare == 0) {
-      compare = a.minor.compareTo(b.minor);
-    }
-
-    return compare;
-  }));
-
-  return Stream.value(beacons);
-});
-
-/// ビーコンリストのStream
-final beaconListStreamProvider =
-    StreamProvider.autoDispose<List<Beacon>>((ref) {
-  final beaconRangingStream = ref.watch(beaconRangingStreamProvider);
-
-  if (beaconRangingStream.asData?.value == null) {
-    return const Stream.empty();
-  }
-
-  final beaconRangingResult = beaconRangingStream.asData!.value;
-
-  print(beaconRangingResult);
-
-  final beacons = <Beacon>[];
-  beacons.addAll(beaconRangingResult.beacons);
-  // beacons.sort(_compareParameters);
-
-  return Stream.value(beacons);
 });
 
 /// ビーコンレンジングによる受信結果のStream

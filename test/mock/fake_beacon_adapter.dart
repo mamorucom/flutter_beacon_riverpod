@@ -45,7 +45,7 @@ class FakeBeaconAdapter implements BeaconAdapterBase {
   //   // ignore: unused_local_variable
   //   Timer _timer = Timer.periodic(const Duration(seconds: 1), (Timer t) {
   //     // ダミーの信号データを返す(2)
-  //     final dummyBeaons = [
+  //     final dummyBeacons = [
   //       const Beacon(
   //         proximityUUID: kProximityUUID,
   //         major: kDummyBeaconMajor,
@@ -53,7 +53,7 @@ class FakeBeaconAdapter implements BeaconAdapterBase {
   //         accuracy: kDummyAccuracy,
   //       ),
   //     ];
-  //     _streamBeaconRangingController?.sink.add(dummyBeaons);
+  //     _streamBeaconRangingController?.sink.add(dummyBeacons);
   //   });
   // }
 
@@ -107,7 +107,7 @@ class FakeBeaconAdapter implements BeaconAdapterBase {
 
   @override
   Stream<RangingResult> watchRanging() {
-    final dummyBeaons = [
+    final dummyBeacons = [
       const Beacon(
         proximityUUID: kProximityUUID,
         major: kDummyBeaconMajor,
@@ -122,7 +122,7 @@ class FakeBeaconAdapter implements BeaconAdapterBase {
         'major': null,
         'minor': null,
       },
-      'beacons': dummyBeaons,
+      'beacons': dummyBeacons,
     };
 
     final rangingResult = RangingResult.from(json);
