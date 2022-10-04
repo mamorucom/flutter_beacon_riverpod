@@ -2,6 +2,7 @@ import 'package:flutter_beacon/flutter_beacon.dart';
 import 'package:flutter_beacon_riverpod/repository/beacon_adapter.dart';
 import 'package:flutter_beacon_riverpod/state_notifier/notifiers/beacon_scanning_notifier.dart';
 import 'package:flutter_beacon_riverpod/state_notifier/notifiers/bluetooth_auth_notifier.dart';
+import 'package:flutter_beacon_riverpod/state_notifier/states/beacon_scanning_state.dart';
 import 'package:flutter_beacon_riverpod/state_notifier/states/bluetooth_auth_state.dart';
 import 'package:flutter_beacon_riverpod/util/constants.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -42,7 +43,7 @@ void main() {
   };
 
   group('BeaconScanningNotifier Test', () {
-    test('beaconListStreamProvider test', () async {
+    test('beaconListStreamProvider Test', () async {
       final mockBeaconAdapter = MockBeaconAdapterBase();
 
       final rangingResult = RangingResult.from(json);
@@ -109,6 +110,50 @@ void main() {
       // expect(container.read(cartEmptyProvider), isTrue);
       // expect(container.read(cartTotalQuantityProvider), 0);
       // expect(container.read(cartTotalPriceLabelProvider), '合計金額 0円+税');
+    });
+
+    test('beaconScanningStateStreamProvider Test', () async {
+      final mockBeaconAdapter = MockBeaconAdapterBase();
+
+      final rangingResult = RangingResult.from(json);
+
+      final container = ProviderContainer(
+        overrides: [
+          beaconAdapterProvider.overrideWithValue(mockBeaconAdapter),
+          // bluetoothAuthStateProvider
+          //     .overrideWithValue(fakeBluetoothAuthNotifier),
+          beaconRangingStreamProvider.overrideWithValue(
+            AsyncValue.data(rangingResult),
+          ),
+        ],
+      );
+
+      // expect(container.read(beaconListStreamProvider), dummyBeacons);
+
+      // final aaaa = container.read(beaconListStreamProvider.stream);
+      // The first read if the loading state
+      expect(
+        container.read(beaconScanningStateStreamProvider),
+        const AsyncLoading<BeaconScanningState>(),
+      );
+
+      // ウェイト
+      await Future<void>.value();
+
+      /// リストの中身を確認-isAは、リスト内オブジェクトのフィールド値が期待値通りかを判定する
+      final beaconScanningStateStream =
+          container.read(beaconScanningStateStreamProvider).asData?.value;
+      if (beaconScanningStateStream == null) {
+        print('null');
+      }
+      expect(beaconScanningStateStream!.beacons, [
+        isA<Beacon>()
+            .having((beacon) => beacon.proximityUUID, 'proximityUUID',
+                dummyBeacons.first.proximityUUID)
+            .having((beacon) => beacon.major, 'major', dummyBeacons.first.major)
+            .having(
+                (beacon) => beacon.minor, 'minor', dummyBeacons.first.minor),
+      ]);
     });
 
     // test('レンジング監視により、ダミーのビーコンを検出し、stateを更新できること', () async {
