@@ -25,7 +25,7 @@ class _BeaconScanningPageState extends ConsumerState<BeaconScanningPage>
     WidgetsBinding.instance.addObserver(this);
 
     super.initState();
-    // ref.read(bluetoothAuthStateProvider.notifier).listeningBluetoothState();
+    ref.read(initializeScanningFutureProvider);
   }
 
   // @override

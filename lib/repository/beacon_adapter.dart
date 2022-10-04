@@ -89,12 +89,13 @@ final bluetoothStateStreamProvider =
 });
 
 // ビーコンScan初期化/停止
-final scanBeaconFutureProvider = FutureProvider.autoDispose<void>((ref) {
+final initializeScanningFutureProvider =
+    FutureProvider.autoDispose<void>((ref) {
   final adapter = ref.watch(beaconAdapterProvider);
   final bluetoothStateStream = ref.watch(bluetoothStateStreamProvider);
 
   if (bluetoothStateStream.asData?.value == null) {
-    return Future.value();
+    return Future.error('bluetoothStateStream error.');
   }
 
   final bluetoothState = bluetoothStateStream.value!;
@@ -112,11 +113,19 @@ final scanBeaconFutureProvider = FutureProvider.autoDispose<void>((ref) {
 final bluetoothAuthStateFutureProvider =
     FutureProvider.autoDispose<BluetoothAuthState>((ref) {
   final adapter = ref.watch(beaconAdapterProvider);
+  final bluetoothStateStream = ref.watch(bluetoothStateStreamProvider);
+
+  if (bluetoothStateStream.asData?.value == null) {
+    return Future.error('bluetoothStateStream error.');
+  }
+  // final bluetoothState = bluetoothStateStream.value!;
+
+  ref.refresh(initializeScanningFutureProvider);
 
   return adapter.getAllRequirements();
 });
 
-/// ビーコンリストのStream
+/// BeaconScanningStateのStream
 /// - ※今回はなくても良いがBeaconリストをView用のデータに加工したいときに利用する。
 final beaconScanningStateStreamProvider =
     StreamProvider.autoDispose<BeaconScanningState>((ref) {
