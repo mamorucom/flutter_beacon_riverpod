@@ -1,5 +1,6 @@
 // ignore_for_file: avoid_print
 
+import 'dart:async';
 import 'dart:core';
 import 'package:flutter/services.dart';
 import 'package:flutter_beacon/flutter_beacon.dart';
@@ -118,7 +119,6 @@ final bluetoothAuthStateFutureProvider =
   if (bluetoothStateStream.asData?.value == null) {
     return Future.error('bluetoothStateStream error.');
   }
-  // final bluetoothState = bluetoothStateStream.value!;
 
   ref.refresh(initializeScanningFutureProvider);
 
@@ -131,13 +131,13 @@ final beaconScanningStateStreamProvider =
     StreamProvider.autoDispose<BeaconScanningState>((ref) {
   final beaconListStream = ref.watch(beaconListStreamProvider);
 
-  final beacons = beaconListStream.asData?.value ?? [];
-
-  if (beacons.isEmpty) {
+  return beaconListStream.when(data: (data) {
+    return Stream.value(BeaconScanningState(beacons: data));
+  }, error: (error, st) {
+    return Stream.error('beaconScanningStateStreamProvider error.');
+  }, loading: () {
     return const Stream.empty();
-  }
-
-  return Stream.value(BeaconScanningState(beacons: beacons));
+  });
 });
 
 /// ビーコンリストのStream（並び替え対応）

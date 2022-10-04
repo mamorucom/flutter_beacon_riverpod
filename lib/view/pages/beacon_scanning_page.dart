@@ -229,41 +229,43 @@ class _ListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      children: ListTile.divideTiles(
-        context: context,
-        tiles: beaconScanningState.beacons.map(
-          (beacon) {
-            return ListTile(
-              title: Text(
-                beacon.proximityUUID,
-                style: const TextStyle(fontSize: 15.0),
-              ),
-              subtitle: Row(
-                mainAxisSize: MainAxisSize.max,
-                children: [
-                  Flexible(
-                    child: Text(
-                      'Major: ${beacon.major}\nMinor: ${beacon.minor}',
-                      style: const TextStyle(fontSize: 13.0),
+    return beaconScanningState.beacons.isEmpty
+        ? const Center(child: CircularProgressIndicator())
+        : ListView(
+            children: ListTile.divideTiles(
+              context: context,
+              tiles: beaconScanningState.beacons.map(
+                (beacon) {
+                  return ListTile(
+                    title: Text(
+                      beacon.proximityUUID,
+                      style: const TextStyle(fontSize: 15.0),
                     ),
-                    flex: 1,
-                    fit: FlexFit.tight,
-                  ),
-                  Flexible(
-                    child: Text(
-                      'Accuracy: ${beacon.accuracy}m\nRSSI: ${beacon.rssi}',
-                      style: const TextStyle(fontSize: 13.0),
+                    subtitle: Row(
+                      mainAxisSize: MainAxisSize.max,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            'Major: ${beacon.major}\nMinor: ${beacon.minor}',
+                            style: const TextStyle(fontSize: 13.0),
+                          ),
+                          flex: 1,
+                          fit: FlexFit.tight,
+                        ),
+                        Flexible(
+                          child: Text(
+                            'Accuracy: ${beacon.accuracy}m\nRSSI: ${beacon.rssi}',
+                            style: const TextStyle(fontSize: 13.0),
+                          ),
+                          flex: 2,
+                          fit: FlexFit.tight,
+                        )
+                      ],
                     ),
-                    flex: 2,
-                    fit: FlexFit.tight,
-                  )
-                ],
+                  );
+                },
               ),
-            );
-          },
-        ),
-      ).toList(),
-    );
+            ).toList(),
+          );
   }
 }
