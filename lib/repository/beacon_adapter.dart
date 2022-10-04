@@ -133,6 +133,10 @@ final beaconScanningStateStreamProvider =
 
   final beacons = beaconListStream.asData?.value ?? [];
 
+  if (beacons.isEmpty) {
+    return const Stream.empty();
+  }
+
   return Stream.value(BeaconScanningState(beacons: beacons));
 });
 

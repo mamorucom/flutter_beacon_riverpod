@@ -4,6 +4,43 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import 'dart:async';
 
+final bluetoothAuthProvider =
+    Provider.autoDispose<BluetoothAuthNotifier>((ref) {
+  return BluetoothAuthNotifier(
+    ref.read(beaconAdapterProvider),
+  );
+});
+
+class BluetoothAuthNotifier {
+  BluetoothAuthNotifier(this._beaconAdapter);
+  final BeaconAdapterBase _beaconAdapter;
+
+  ///
+  /// アプリ側の位置情報権限許可リクエスト
+  ///
+  Future requestLocationAuthorization() async {
+    await _beaconAdapter.requestLocationAuthorization();
+  }
+
+  ///
+  /// 端末側の位置情報設定許可リクエスト
+  ///
+  Future openLocationSettings() async {
+    await _beaconAdapter.openLocationSettings();
+  }
+
+  ///
+  /// 端末のBluetooth設定許可リクエスト
+  ///
+  Future openBluetoothSettings() async {
+    await _beaconAdapter.openBluetoothSettings();
+  }
+  
+  Future cancel() async {
+    await _beaconAdapter.cancel();
+  }
+}
+
 final bluetoothAuthStateProvider = StateNotifierProvider.autoDispose<
     BluetoothAuthStateNotifier, BluetoothAuthState>((ref) {
   return BluetoothAuthStateNotifier(

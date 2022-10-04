@@ -47,7 +47,7 @@ class _BeaconScanningPageState extends ConsumerState<BeaconScanningPage>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    // ref.read(bluetoothAuthStateProvider.notifier).cancel();
+    ref.read(bluetoothAuthProvider).cancel();
     super.dispose();
   }
 
@@ -60,8 +60,7 @@ class _BeaconScanningPageState extends ConsumerState<BeaconScanningPage>
     final beaconScanningStateStream =
         ref.watch(beaconScanningStateStreamProvider);
     // .notifierでメソッドを使用可能 ※Stateは参照不可
-    final bluetoothAuthNotifier =
-        ref.watch(bluetoothAuthStateProvider.notifier);
+    final bluetoothAuthNotifier = ref.watch(bluetoothAuthProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -135,7 +134,7 @@ class _BeaconScanningPageState extends ConsumerState<BeaconScanningPage>
   List<Widget> _buildAppBarActions({
     required BuildContext context,
     required BluetoothAuthState bluetoothAuthState,
-    required BluetoothAuthStateNotifier bluetoothAuthNotifier,
+    required BluetoothAuthNotifier bluetoothAuthNotifier,
   }) {
     return [
       if (!bluetoothAuthState.authorizationStatusOk &&
