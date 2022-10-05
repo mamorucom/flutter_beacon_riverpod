@@ -9,7 +9,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 /// - ※今回はなくても良いがBeaconリストをView用のデータに加工したいときに利用する。
 final beaconScanningStateStreamProvider =
     StreamProvider.autoDispose<BeaconScanningState>((ref) {
-  final beaconListStream = ref.watch(beaconListStreamProvider);
+  final beaconListStream = ref.watch(sortedBeaconListStreamProvider);
 
   return beaconListStream.when(data: (data) {
     return Stream.value(BeaconScanningState(beacons: data));
