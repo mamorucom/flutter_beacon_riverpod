@@ -108,39 +108,13 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           beaconListStreamProvider.overrideWithValue(
-            // ignore: prefer_const_constructors
-            AsyncValue.data(
-                // ignore: prefer_const_literals_to_create_immutables
-                [
-                  const Beacon(
-                    proximityUUID: kProximityUUID,
-                    // macAddress: ,
-                    major: kDummyBeaconMajor,
-                    minor: kDummyBeaconMinor,
-                    accuracy: kDummyAccuracy,
-                    proximity: Proximity.immediate,
-                  ),
-                  const Beacon(
-                    proximityUUID: kProximityUUID,
-                    // macAddress: ,
-                    major: kDummyBeaconMajor - 1,
-                    minor: kDummyBeaconMinor - 1,
-                    accuracy: kDummyAccuracy - 1,
-                    proximity: Proximity.far,
-                  ),
-                ]),
+            AsyncValue.data([
+              dummyBeacons[0],
+              dummyBeacons[1],
+            ]),
           ),
         ],
       );
-
-      // The first read if the loading state
-      expect(
-        container.read(sortedBeaconListProvider),
-        const AsyncLoading<List<Beacon>>(),
-      );
-
-      // ウェイト
-      await Future<void>.value();
 
       /// リストの中身を確認-isAは、リスト内オブジェクトのフィールド値が期待値通りかを判定する
       expect(container.read(sortedBeaconListProvider), [
@@ -158,57 +132,23 @@ void main() {
       ]);
     });
 
-    // test('''
-    //     beaconScanningStateStreamProvider Test
-    //     state is AsyncError
-    //   ''', () async {
-    //   final container = ProviderContainer(
-    //     overrides: [
-    //       sortedBeaconListProvider.overrideWithValue(
-    //         AsyncValue.error('error'),
-    //       ),
-    //     ],
-    //   );
-
-    //   // The first read if the loading state
-    //   expect(
-    //     container.read(beaconScanningStateProvider),
-    //     const AsyncLoading<BeaconScanningState>(),
-    //   );
-
-    //   // ウェイト
-    //   await Future<void>.value();
-
-    //   /// リストの中身を確認-isAは、リスト内オブジェクトのフィールド値が期待値通りかを判定する
-    //   expect(
-    //     container.read(beaconScanningStateProvider).hasError,
-    //     true,
-    //   );
-    // });
-
     test('beaconScanningStateStreamProvider Test', () async {
       final container = ProviderContainer(
         overrides: [
-          sortedBeaconListProvider.overrideWithValue(
-            dummyBeacons,
-          ),
+          sortedBeaconListProvider.overrideWithValue([
+            dummyBeacons[1],
+            dummyBeacons[0],
+          ]),
         ],
       );
-
-      // The first read if the loading state
-      expect(
-        container.read(beaconScanningStateProvider),
-        const AsyncLoading<BeaconScanningState>(),
-      );
-
-      // ウェイト
-      await Future<void>.value();
 
       /// リストの中身を確認-isAは、リスト内オブジェクトのフィールド値が期待値通りかを判定する
       expect(
         container.read(beaconScanningStateProvider),
-        AsyncData<BeaconScanningState>(
-            BeaconScanningState(beacons: dummyBeacons)),
+        BeaconScanningState(beacons: [
+          dummyBeacons[1],
+          dummyBeacons[0],
+        ]),
       );
     });
 
