@@ -58,8 +58,7 @@ class _BeaconScanningPageState extends ConsumerState<BeaconScanningPage>
     final bluetoothAuthStateFuture =
         ref.watch(bluetoothAuthStateFutureProvider);
     // final bluetoothAuthState = ref.watch(bluetoothAuthStateProvider);
-    final beaconScanningStateStream =
-        ref.watch(beaconScanningStateStreamProvider);
+    final beaconScanningState = ref.watch(beaconScanningStateProvider);
     // .notifierでメソッドを使用可能 ※Stateは参照不可
     final bluetoothAuthNotifier = ref.watch(bluetoothAuthProvider);
 
@@ -76,20 +75,25 @@ class _BeaconScanningPageState extends ConsumerState<BeaconScanningPage>
             );
           },
           error: (error, st) {
-            return [Container()];
+            return _buildAppBarActions(
+              context: context,
+              bluetoothAuthState: BluetoothAuthState.empty(),
+              bluetoothAuthNotifier: bluetoothAuthNotifier,
+            );
           },
           loading: () => [const Center(child: CircularProgressIndicator())],
         ),
       ),
-      body: beaconScanningStateStream.when(
-        data: (data) {
-          return _ListView(beaconScanningState: data);
-        },
-        error: (error, st) {
-          return Center(child: Text(error.toString()));
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-      ),
+      body: _ListView(beaconScanningState: beaconScanningState),
+      // body: beaconScanningStateStream.when(
+      //   data: (data) {
+      //     return _ListView(beaconScanningState: data);
+      //   },
+      //   error: (error, st) {
+      //     return Center(child: Text(error.toString()));
+      //   },
+      //   loading: () => const Center(child: CircularProgressIndicator()),
+      // ),
 
       // body: beaconScanningState.beacons.isEmpty
       //     ? const Center(child: CircularProgressIndicator())

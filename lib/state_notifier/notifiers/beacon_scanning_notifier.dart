@@ -7,22 +7,15 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 /// BeaconScanningStateのStream
 /// - ※今回はなくても良いがBeaconリストをView用のデータに加工したいときに利用する。
-final beaconScanningStateStreamProvider =
-    StreamProvider.autoDispose<BeaconScanningState>((ref) {
-  final beaconListStream = ref.watch(sortedBeaconListStreamProvider);
+final beaconScanningStateProvider =
+    Provider.autoDispose<BeaconScanningState>((ref) {
+  final sortedBeacons = ref.watch(sortedBeaconListProvider);
 
-  return beaconListStream.when(data: (data) {
-    return Stream.value(BeaconScanningState(beacons: data));
-  }, error: (error, st) {
-    return Stream.error('beaconScanningStateStreamProvider error.');
-  }, loading: () {
-    return const Stream.empty();
-  });
+  return BeaconScanningState(beacons: sortedBeacons);
 });
 
 /// ビーコンリストのStream（並び替え対応）
-final sortedBeaconListStreamProvider =
-    StreamProvider.autoDispose<List<Beacon>>((ref) {
+final sortedBeaconListProvider = Provider.autoDispose<List<Beacon>>((ref) {
   final beaconListStream = ref.watch(beaconListStreamProvider);
 
   final beacons = beaconListStream.asData?.value ?? [];
@@ -42,7 +35,7 @@ final sortedBeaconListStreamProvider =
     return compare;
   }));
 
-  return Stream.value(beacons);
+  return beacons;
 });
 
 /// ビーコンリストのStream
@@ -50,10 +43,12 @@ final beaconListStreamProvider =
     StreamProvider.autoDispose<List<Beacon>>((ref) {
   final beaconRangingStream = ref.watch(beaconRangingStreamProvider);
 
-  final beaconRangingResult = beaconRangingStream.asData?.value;
-  if (beaconRangingResult == null) {
+  if (beaconRangingStream.asData?.value == null) {
     return const Stream.empty();
   }
+  final beaconRangingResult = beaconRangingStream.value!;
+
+  print(beaconRangingResult);
 
   // final beacons = <Beacon>[];
   // beacons.addAll(beaconRangingResult.beacons);

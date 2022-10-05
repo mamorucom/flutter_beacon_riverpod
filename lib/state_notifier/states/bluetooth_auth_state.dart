@@ -17,4 +17,10 @@ class BluetoothAuthState with _$BluetoothAuthState {
 
   // factory BluetoothAuthState.fromJson(Map<String, dynamic> json) =>
   //     _$BluetoothAuthStateFromJson(json);
+
+  factory BluetoothAuthState.empty() => BluetoothAuthState(
+        authorizationStatusOk: false,
+        locationServiceEnabled: false,
+        bluetoothEnabled: false,
+      );
 }

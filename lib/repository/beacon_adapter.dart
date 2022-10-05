@@ -93,7 +93,7 @@ final initializeScanningFutureProvider =
   final bluetoothStateStream = ref.watch(bluetoothStateStreamProvider);
 
   if (bluetoothStateStream.asData?.value == null) {
-    return Future.error('bluetoothStateStream error.');
+    return Future.value();
   }
 
   final bluetoothState = bluetoothStateStream.value!;
@@ -104,6 +104,7 @@ final initializeScanningFutureProvider =
   } else if (bluetoothState == BluetoothState.stateOff) {
     // // ビーコンスキャン停止
     // return adapter.pauseScanBeacon();
+    return Future.value();
   }
 });
 
@@ -114,7 +115,7 @@ final bluetoothAuthStateFutureProvider =
   final bluetoothStateStream = ref.watch(bluetoothStateStreamProvider);
 
   if (bluetoothStateStream.asData?.value == null) {
-    return Future.error('bluetoothStateStream error.');
+    return Future.value(BluetoothAuthState.empty());
   }
 
   ref.refresh(initializeScanningFutureProvider);
@@ -132,7 +133,8 @@ final beaconRangingStreamProvider =
     return const Stream.empty();
   }
 
-  final bluetoothAuthState = bluetoothAuthStateFuture.asData!.value;
+  final bluetoothAuthState = bluetoothAuthStateFuture.value!;
+
   // 権限チェック
   if (!bluetoothAuthState.authorizationStatusOk ||
       !bluetoothAuthState.locationServiceEnabled ||
