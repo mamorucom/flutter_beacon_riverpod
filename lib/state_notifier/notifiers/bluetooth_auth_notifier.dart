@@ -35,7 +35,7 @@ class BluetoothAuthNotifier {
   Future openBluetoothSettings() async {
     await _beaconAdapter.openBluetoothSettings();
   }
-  
+
   Future cancel() async {
     await _beaconAdapter.cancel();
   }

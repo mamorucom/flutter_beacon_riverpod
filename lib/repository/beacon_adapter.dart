@@ -112,6 +112,7 @@ final initializeScanningFutureProvider =
 final bluetoothAuthStateFutureProvider =
     FutureProvider.autoDispose<BluetoothAuthState>((ref) {
   final adapter = ref.watch(beaconAdapterProvider);
+  // bluetooth状態を監視してbluetoothがON/OFFされるたびに更新する
   final bluetoothStateStream = ref.watch(bluetoothStateStreamProvider);
 
   if (bluetoothStateStream.asData?.value == null) {

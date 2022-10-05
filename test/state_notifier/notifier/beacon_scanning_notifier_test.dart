@@ -2,54 +2,17 @@ import 'package:flutter_beacon/flutter_beacon.dart';
 import 'package:flutter_beacon_riverpod/repository/beacon_adapter.dart';
 import 'package:flutter_beacon_riverpod/state_notifier/notifiers/beacon_scanning_notifier.dart';
 import 'package:flutter_beacon_riverpod/state_notifier/states/beacon_scanning_state.dart';
-import 'package:flutter_beacon_riverpod/util/constants.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:mocktail/mocktail.dart';
 
 import '../../dummy/dummy_data.dart';
 
-class MockBeaconAdapterBase extends Mock implements BeaconAdapterBase {}
+// class MockBeaconAdapterBase extends Mock implements BeaconAdapterBase {}
 
 void main() {
-  final dummyBeacons = [
-    const Beacon(
-      proximityUUID: kProximityUUID,
-      // macAddress: ,
-      major: kDummyBeaconMajor,
-      minor: kDummyBeaconMinor,
-      accuracy: kDummyAccuracy,
-      proximity: Proximity.immediate,
-    ),
-    const Beacon(
-      proximityUUID: kProximityUUID,
-      // macAddress: ,
-      major: kDummyBeaconMajor - 1,
-      minor: kDummyBeaconMinor - 1,
-      accuracy: kDummyAccuracy - 1,
-      proximity: Proximity.far,
-    ),
-  ];
-
-  final json = {
-    'region': {'identifier': 'beacon', 'major': null, 'minor': null},
-    'beacons': [
-      {
-        'proximityUUID': dummyBeacons[0].proximityUUID,
-        // 'macAddress': '12-34-56-78',
-        'major': dummyBeacons[0].major,
-        'minor': dummyBeacons[0].minor,
-        // 'rssi': '60',
-        // 'txPower': '70',
-        'accuracy': dummyBeacons[0].accuracy,
-        'proximity': 'immediate'
-      }
-    ],
-  };
-
   group('BeaconScanningNotifier Test', () {
     test('beaconListStreamProvider Test', () async {
-      final rangingResult = RangingResult.from(json);
+      final rangingResult = RangingResult.from(dummyRangingResultJson);
 
       final container = ProviderContainer(
         overrides: [
@@ -77,31 +40,6 @@ void main() {
             .having(
                 (beacon) => beacon.minor, 'minor', dummyBeacons.first.minor),
       ]);
-
-      // TODO:調べたやり方 ※あとで削除
-
-      // expectLater(
-      //   controller.stream,
-      //   emitsInOrder([
-      //     EmailPasswordSignInState(
-      //       formType: EmailPasswordSignInFormType.signIn,
-      //       value: const AsyncLoading<void>(),
-      //     ),
-      //     predicate<EmailPasswordSignInState>((state) {
-      //       expect(state.formType, EmailPasswordSignInFormType.signIn);
-      //       expect(state.value.hasError, true);
-      //       return true;
-      //     }),
-      //   ]),
-      // );
-      // run
-      // final result = await controller.submit(testEmail, testPassword);
-      // verify
-      // expect(result, false);
-      // final target = container.read(cartMapProvider.notifier);
-      // expect(container.read(cartEmptyProvider), isTrue);
-      // expect(container.read(cartTotalQuantityProvider), 0);
-      // expect(container.read(cartTotalPriceLabelProvider), '合計金額 0円+税');
     });
 
     test('sortedBeaconListStreamProvider Test-並び替えできること', () async {
