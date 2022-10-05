@@ -1,16 +1,13 @@
 import 'package:flutter_beacon/flutter_beacon.dart';
 import 'package:flutter_beacon_riverpod/repository/beacon_adapter.dart';
 import 'package:flutter_beacon_riverpod/state_notifier/notifiers/beacon_scanning_notifier.dart';
-import 'package:flutter_beacon_riverpod/state_notifier/notifiers/bluetooth_auth_notifier.dart';
 import 'package:flutter_beacon_riverpod/state_notifier/states/beacon_scanning_state.dart';
-import 'package:flutter_beacon_riverpod/state_notifier/states/bluetooth_auth_state.dart';
 import 'package:flutter_beacon_riverpod/util/constants.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../dummy/dummy_data.dart';
-import '../../mock/fake_bluetooth_auth_notifier.dart';
 
 class MockBeaconAdapterBase extends Mock implements BeaconAdapterBase {}
 
@@ -23,6 +20,14 @@ void main() {
       minor: kDummyBeaconMinor,
       accuracy: kDummyAccuracy,
       proximity: Proximity.immediate,
+    ),
+    const Beacon(
+      proximityUUID: kProximityUUID,
+      // macAddress: ,
+      major: kDummyBeaconMajor - 1,
+      minor: kDummyBeaconMinor - 1,
+      accuracy: kDummyAccuracy - 1,
+      proximity: Proximity.far,
     ),
   ];
 
@@ -73,11 +78,6 @@ void main() {
                 (beacon) => beacon.minor, 'minor', dummyBeacons.first.minor),
       ]);
 
-      // expect(
-      //   container.read(beaconListStreamProvider),
-      //   AsyncData<List<Beacon>>(dummyBeacons),
-      // );
-
       // TODO:調べたやり方 ※あとで削除
 
       // expectLater(
@@ -104,11 +104,89 @@ void main() {
       // expect(container.read(cartTotalPriceLabelProvider), '合計金額 0円+税');
     });
 
+    test('sortedBeaconListStreamProvider Test-並び替えできること', () async {
+      final container = ProviderContainer(
+        overrides: [
+          beaconListStreamProvider.overrideWithValue(
+            // ignore: prefer_const_constructors
+            AsyncValue.data(
+                // ignore: prefer_const_literals_to_create_immutables
+                [
+                  const Beacon(
+                    proximityUUID: kProximityUUID,
+                    // macAddress: ,
+                    major: kDummyBeaconMajor,
+                    minor: kDummyBeaconMinor,
+                    accuracy: kDummyAccuracy,
+                    proximity: Proximity.immediate,
+                  ),
+                  const Beacon(
+                    proximityUUID: kProximityUUID,
+                    // macAddress: ,
+                    major: kDummyBeaconMajor - 1,
+                    minor: kDummyBeaconMinor - 1,
+                    accuracy: kDummyAccuracy - 1,
+                    proximity: Proximity.far,
+                  ),
+                ]),
+          ),
+        ],
+      );
+
+      // The first read if the loading state
+      expect(
+        container.read(sortedBeaconListStreamProvider),
+        const AsyncLoading<List<Beacon>>(),
+      );
+
+      // ウェイト
+      await Future<void>.value();
+
+      /// リストの中身を確認-isAは、リスト内オブジェクトのフィールド値が期待値通りかを判定する
+      expect(container.read(sortedBeaconListStreamProvider).value, [
+        isA<Beacon>()
+            .having((beacon) => beacon.proximityUUID, 'proximityUUID',
+                dummyBeacons[1].proximityUUID)
+            .having((beacon) => beacon.major, 'major', dummyBeacons[1].major)
+            .having((beacon) => beacon.minor, 'minor', dummyBeacons[1].minor),
+        isA<Beacon>()
+            .having((beacon) => beacon.proximityUUID, 'proximityUUID',
+                dummyBeacons.first.proximityUUID)
+            .having((beacon) => beacon.major, 'major', dummyBeacons.first.major)
+            .having(
+                (beacon) => beacon.minor, 'minor', dummyBeacons.first.minor),
+      ]);
+    });
+
+    test('''
+        beaconScanningStateStreamProvider Test
+        state is AsyncError
+      ''', () async {
+      final container = ProviderContainer(
+        overrides: [
+          sortedBeaconListStreamProvider.overrideWithValue(
+            AsyncValue.error('error'),
+          ),
+        ],
+      );
+
+      // The first read if the loading state
+      expect(
+        container.read(beaconScanningStateStreamProvider),
+        const AsyncLoading<BeaconScanningState>(),
+      );
+
+      // ウェイト
+      await Future<void>.value();
+
+      /// リストの中身を確認-isAは、リスト内オブジェクトのフィールド値が期待値通りかを判定する
+      expect(
+        container.read(beaconScanningStateStreamProvider).hasError,
+        true,
+      );
+    });
+
     test('beaconScanningStateStreamProvider Test', () async {
-      TestWidgetsFlutterBinding.ensureInitialized();
-
-      final rangingResult = RangingResult.from(json);
-
       final container = ProviderContainer(
         overrides: [
           sortedBeaconListStreamProvider.overrideWithValue(

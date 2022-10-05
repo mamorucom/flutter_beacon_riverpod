@@ -50,19 +50,15 @@ final beaconListStreamProvider =
     StreamProvider.autoDispose<List<Beacon>>((ref) {
   final beaconRangingStream = ref.watch(beaconRangingStreamProvider);
 
-  if (beaconRangingStream.asData?.value == null) {
+  final beaconRangingResult = beaconRangingStream.asData?.value;
+  if (beaconRangingResult == null) {
     return const Stream.empty();
   }
 
-  final beaconRangingResult = beaconRangingStream.asData!.value;
+  // final beacons = <Beacon>[];
+  // beacons.addAll(beaconRangingResult.beacons);
 
-  print(beaconRangingResult);
-
-  final beacons = <Beacon>[];
-  beacons.addAll(beaconRangingResult.beacons);
-  // beacons.sort(_compareParameters);
-
-  return Stream.value(beacons);
+  return Stream.value(beaconRangingResult.beacons);
 });
 
 // final beaconScanningStateProvider = StateNotifierProvider.autoDispose<
