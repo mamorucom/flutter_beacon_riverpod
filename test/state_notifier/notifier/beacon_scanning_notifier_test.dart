@@ -44,24 +44,16 @@ void main() {
 
   group('BeaconScanningNotifier Test', () {
     test('beaconListStreamProvider Test', () async {
-      final mockBeaconAdapter = MockBeaconAdapterBase();
-
       final rangingResult = RangingResult.from(json);
 
       final container = ProviderContainer(
         overrides: [
-          beaconAdapterProvider.overrideWithValue(mockBeaconAdapter),
-          // bluetoothAuthStateProvider
-          //     .overrideWithValue(fakeBluetoothAuthNotifier),
           beaconRangingStreamProvider.overrideWithValue(
             AsyncValue.data(rangingResult),
           ),
         ],
       );
 
-      // expect(container.read(beaconListStreamProvider), dummyBeacons);
-
-      // final aaaa = container.read(beaconListStreamProvider.stream);
       // The first read if the loading state
       expect(
         container.read(beaconListStreamProvider),
@@ -113,24 +105,18 @@ void main() {
     });
 
     test('beaconScanningStateStreamProvider Test', () async {
-      final mockBeaconAdapter = MockBeaconAdapterBase();
+      TestWidgetsFlutterBinding.ensureInitialized();
 
       final rangingResult = RangingResult.from(json);
 
       final container = ProviderContainer(
         overrides: [
-          beaconAdapterProvider.overrideWithValue(mockBeaconAdapter),
-          // bluetoothAuthStateProvider
-          //     .overrideWithValue(fakeBluetoothAuthNotifier),
-          beaconRangingStreamProvider.overrideWithValue(
-            AsyncValue.data(rangingResult),
+          sortedBeaconListStreamProvider.overrideWithValue(
+            AsyncValue.data(dummyBeacons),
           ),
         ],
       );
 
-      // expect(container.read(beaconListStreamProvider), dummyBeacons);
-
-      // final aaaa = container.read(beaconListStreamProvider.stream);
       // The first read if the loading state
       expect(
         container.read(beaconScanningStateStreamProvider),
@@ -141,19 +127,11 @@ void main() {
       await Future<void>.value();
 
       /// リストの中身を確認-isAは、リスト内オブジェクトのフィールド値が期待値通りかを判定する
-      final beaconScanningStateStream =
-          container.read(beaconScanningStateStreamProvider).asData?.value;
-      if (beaconScanningStateStream == null) {
-        print('null');
-      }
-      expect(beaconScanningStateStream!.beacons, [
-        isA<Beacon>()
-            .having((beacon) => beacon.proximityUUID, 'proximityUUID',
-                dummyBeacons.first.proximityUUID)
-            .having((beacon) => beacon.major, 'major', dummyBeacons.first.major)
-            .having(
-                (beacon) => beacon.minor, 'minor', dummyBeacons.first.minor),
-      ]);
+      expect(
+        container.read(beaconScanningStateStreamProvider),
+        AsyncData<BeaconScanningState>(
+            BeaconScanningState(beacons: dummyBeacons)),
+      );
     });
 
     // test('レンジング監視により、ダミーのビーコンを検出し、stateを更新できること', () async {
