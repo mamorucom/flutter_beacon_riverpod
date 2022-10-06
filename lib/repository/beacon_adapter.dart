@@ -78,12 +78,43 @@ abstract class BeaconAdapterBase {
   Future<bool> isBroadcasting();
 }
 
-// Bluetooth ON/OFFチェック
-final bluetoothStateStreamProvider =
-    StreamProvider.autoDispose<BluetoothState>((ref) {
+/// ビーコンレンジングによる受信結果のStream
+final beaconRangingStreamProvider =
+    StreamProvider.autoDispose<RangingResult>((ref) {
+  final bluetoothAuthStateFuture = ref.watch(bluetoothAuthStateFutureProvider);
   final adapter = ref.watch(beaconAdapterProvider);
 
-  return adapter.listeningBluetoothState();
+  if (bluetoothAuthStateFuture.asData?.value == null) {
+    return const Stream.empty();
+  }
+
+  final bluetoothAuthState = bluetoothAuthStateFuture.value!;
+
+  // 権限チェック
+  if (!bluetoothAuthState.authorizationStatusOk ||
+      !bluetoothAuthState.locationServiceEnabled ||
+      !bluetoothAuthState.bluetoothEnabled) {
+    return const Stream.empty();
+  }
+
+  // 権限OKならレンジングによる監視開始
+  return adapter.watchRanging();
+});
+
+// 権限取得
+final bluetoothAuthStateFutureProvider =
+    FutureProvider.autoDispose<BluetoothAuthState>((ref) {
+  final adapter = ref.watch(beaconAdapterProvider);
+  // bluetooth状態を監視してbluetoothがON/OFFされるたびに更新する
+  final bluetoothStateStream = ref.watch(bluetoothStateStreamProvider);
+
+  if (bluetoothStateStream.asData?.value == null) {
+    return Future.value(BluetoothAuthState.empty());
+  }
+
+  ref.refresh(initializeScanningFutureProvider);
+
+  return adapter.getAllRequirements();
 });
 
 // ビーコンScan初期化/停止
@@ -108,42 +139,12 @@ final initializeScanningFutureProvider =
   }
 });
 
-// 権限取得
-final bluetoothAuthStateFutureProvider =
-    FutureProvider.autoDispose<BluetoothAuthState>((ref) {
-  final adapter = ref.watch(beaconAdapterProvider);
-  // bluetooth状態を監視してbluetoothがON/OFFされるたびに更新する
-  final bluetoothStateStream = ref.watch(bluetoothStateStreamProvider);
-
-  if (bluetoothStateStream.asData?.value == null) {
-    return Future.value(BluetoothAuthState.empty());
-  }
-
-  ref.refresh(initializeScanningFutureProvider);
-
-  return adapter.getAllRequirements();
-});
-
-/// ビーコンレンジングによる受信結果のStream
-final beaconRangingStreamProvider =
-    StreamProvider.autoDispose<RangingResult>((ref) {
-  final bluetoothAuthStateFuture = ref.watch(bluetoothAuthStateFutureProvider);
+// Bluetooth ON/OFFチェック
+final bluetoothStateStreamProvider =
+    StreamProvider.autoDispose<BluetoothState>((ref) {
   final adapter = ref.watch(beaconAdapterProvider);
 
-  if (bluetoothAuthStateFuture.asData?.value == null) {
-    return const Stream.empty();
-  }
-
-  final bluetoothAuthState = bluetoothAuthStateFuture.value!;
-
-  // 権限チェック
-  if (!bluetoothAuthState.authorizationStatusOk ||
-      !bluetoothAuthState.locationServiceEnabled ||
-      !bluetoothAuthState.bluetoothEnabled) {
-    return const Stream.empty();
-  }
-
-  return adapter.watchRanging();
+  return adapter.listeningBluetoothState();
 });
 
 final beaconAdapterProvider = Provider.autoDispose<BeaconAdapterBase>((ref) {
