@@ -19,13 +19,19 @@ void main() {
           beaconRangingStreamProvider.overrideWith((ref) {
             return Stream.value(rangingResult);
           }),
+
+          /// こちらでも実現できます。
+          /// 参考;https://qiita.com/shindex/items/1ec40cc224aedcf31946
+          // beaconRangingStreamProvider.overrideWith((ref) async* {
+          //   yield rangingResult;
+          // }),
         ],
       );
 
       /// autoDisposeを使用するProviderは、container.readだけでは即座にdisposeされてしまうため、
-      /// 以下のようにlistenしてあげることで、テスト終了までViewModelを破棄されることなく動作させることができるようです。
-      /// https://zenn.dev/omtians9425/articles/4a74f982788bdb
-      final beaconListStreamState = container
+      /// 以下のようにlistenしてあげることで、テスト終了までProviderが破棄されることなく動作させることができるようです。
+      /// 参考;https://zenn.dev/omtians9425/articles/4a74f982788bdb
+      container
           .listen<AsyncValue<List<Beacon>>>(
               beaconListStreamProvider, (previous, next) {})
           .read();
@@ -36,13 +42,14 @@ void main() {
         const AsyncLoading<List<Beacon>>(),
       );
 
-      await Future<void>.value();
-
-      container.refresh(beaconListStreamProvider);
-      await Future<void>.value();
-
       /// リストの中身を確認-isAは、リスト内オブジェクトのフィールド値が期待値通りかを判定する
-      expect(container.read(beaconListStreamProvider).value, [
+      /// - await container.read(beaconListStreamProvider.future)はAsyncDataが確定すると、データ（戻り値）を受け取ります。
+      /// - 以下コードでもデータを受け取れます。
+      /// await Future<void>.value();
+      ///   container.refresh(beaconListStreamProvider);
+      ///   await Future<void>.value();
+      ///   expect(container.read(beaconListStreamProvider).value, ~(省略)~)
+      expect(await container.read(beaconListStreamProvider.future), [
         isA<Beacon>()
             .having((beacon) => beacon.proximityUUID, 'proximityUUID',
                 dummyBeacons.first.proximityUUID)
@@ -52,33 +59,42 @@ void main() {
       ]);
     });
 
-    // test('sortedBeaconListStreamProvider Test-並び替えできること', () async {
-    //   final container = ProviderContainer(
-    //     overrides: [
-    //       beaconListStreamProvider.overrideWithValue(
-    //         AsyncValue.data([
-    //           dummyBeacons[0],
-    //           dummyBeacons[1],
-    //         ]),
-    //       ),
-    //     ],
-    //   );
+    test('sortedBeaconListStreamProvider Test-並び替えできること', () async {
+      final container = ProviderContainer(
+        overrides: [
+          // beaconListStreamProvider.overrideWith(
+          //   AsyncValue.data([
+          //     dummyBeacons[0],
+          //     dummyBeacons[1],
+          //   ]),
+          // ),
+          beaconListStreamProvider.overrideWith((ref) async* {
+            yield [
+              dummyBeacons[0],
+              dummyBeacons[1],
+            ];
+          }),
+        ],
+      );
 
-    //   /// リストの中身を確認-isAは、リスト内オブジェクトのフィールド値が期待値通りかを判定する
-    //   expect(container.read(sortedBeaconListProvider), [
-    //     isA<Beacon>()
-    //         .having((beacon) => beacon.proximityUUID, 'proximityUUID',
-    //             dummyBeacons[1].proximityUUID)
-    //         .having((beacon) => beacon.major, 'major', dummyBeacons[1].major)
-    //         .having((beacon) => beacon.minor, 'minor', dummyBeacons[1].minor),
-    //     isA<Beacon>()
-    //         .having((beacon) => beacon.proximityUUID, 'proximityUUID',
-    //             dummyBeacons.first.proximityUUID)
-    //         .having((beacon) => beacon.major, 'major', dummyBeacons.first.major)
-    //         .having(
-    //             (beacon) => beacon.minor, 'minor', dummyBeacons.first.minor),
-    //   ]);
-    // });
+      expect(container.read(sortedBeaconListProvider), []);
+      await Future<void>.value();
+
+      /// リストの中身を確認-isAは、リスト内オブジェクトのフィールド値が期待値通りかを判定する
+      expect(container.read(sortedBeaconListProvider), [
+        isA<Beacon>()
+            .having((beacon) => beacon.proximityUUID, 'proximityUUID',
+                dummyBeacons[1].proximityUUID)
+            .having((beacon) => beacon.major, 'major', dummyBeacons[1].major)
+            .having((beacon) => beacon.minor, 'minor', dummyBeacons[1].minor),
+        isA<Beacon>()
+            .having((beacon) => beacon.proximityUUID, 'proximityUUID',
+                dummyBeacons.first.proximityUUID)
+            .having((beacon) => beacon.major, 'major', dummyBeacons.first.major)
+            .having(
+                (beacon) => beacon.minor, 'minor', dummyBeacons.first.minor),
+      ]);
+    });
 
     test('beaconScanningStateStreamProvider Test', () async {
       final container = ProviderContainer(
