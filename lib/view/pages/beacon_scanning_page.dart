@@ -5,7 +5,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_beacon_riverpod/state_notifier/notifiers/bluetooth_auth_notifier.dart';
-import 'package:flutter_beacon_riverpod/state_notifier/states/beacon_scanning_state.dart';
 import 'package:flutter_beacon_riverpod/state_notifier/states/bluetooth_auth_state.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -84,55 +83,44 @@ class _BeaconScanningPageState extends ConsumerState<BeaconScanningPage>
           loading: () => [const Center(child: CircularProgressIndicator())],
         ),
       ),
-      body: _ListView(beaconScanningState: beaconScanningState),
-      // body: beaconScanningStateStream.when(
-      //   data: (data) {
-      //     return _ListView(beaconScanningState: data);
-      //   },
-      //   error: (error, st) {
-      //     return Center(child: Text(error.toString()));
-      //   },
-      //   loading: () => const Center(child: CircularProgressIndicator()),
-      // ),
-
-      // body: beaconScanningState.beacons.isEmpty
-      //     ? const Center(child: CircularProgressIndicator())
-      //     : ListView(
-      //         children: ListTile.divideTiles(
-      //           context: context,
-      //           tiles: beaconScanningState.beacons.map(
-      //             (beacon) {
-      //               return ListTile(
-      //                 title: Text(
-      //                   beacon.proximityUUID,
-      //                   style: const TextStyle(fontSize: 15.0),
-      //                 ),
-      //                 subtitle: Row(
-      //                   mainAxisSize: MainAxisSize.max,
-      //                   children: [
-      //                     Flexible(
-      //                       child: Text(
-      //                         'Major: ${beacon.major}\nMinor: ${beacon.minor}',
-      //                         style: const TextStyle(fontSize: 13.0),
-      //                       ),
-      //                       flex: 1,
-      //                       fit: FlexFit.tight,
-      //                     ),
-      //                     Flexible(
-      //                       child: Text(
-      //                         'Accuracy: ${beacon.accuracy}m\nRSSI: ${beacon.rssi}',
-      //                         style: const TextStyle(fontSize: 13.0),
-      //                       ),
-      //                       flex: 2,
-      //                       fit: FlexFit.tight,
-      //                     )
-      //                   ],
-      //                 ),
-      //               );
-      //             },
-      //           ),
-      //         ).toList(),
-      //       ),
+      body: beaconScanningState.beacons.isEmpty
+          ? const Center(child: CircularProgressIndicator())
+          : ListView(
+              children: ListTile.divideTiles(
+                context: context,
+                tiles: beaconScanningState.beacons.map(
+                  (beacon) {
+                    return ListTile(
+                      title: Text(
+                        beacon.proximityUUID,
+                        style: const TextStyle(fontSize: 15.0),
+                      ),
+                      subtitle: Row(
+                        mainAxisSize: MainAxisSize.max,
+                        children: [
+                          Flexible(
+                            child: Text(
+                              'Major: ${beacon.major}\nMinor: ${beacon.minor}',
+                              style: const TextStyle(fontSize: 13.0),
+                            ),
+                            flex: 1,
+                            fit: FlexFit.tight,
+                          ),
+                          Flexible(
+                            child: Text(
+                              'Accuracy: ${beacon.accuracy}m\nRSSI: ${beacon.rssi}',
+                              style: const TextStyle(fontSize: 13.0),
+                            ),
+                            flex: 2,
+                            fit: FlexFit.tight,
+                          )
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ).toList(),
+            ),
     );
   }
 
@@ -221,56 +209,5 @@ class _BeaconScanningPageState extends ConsumerState<BeaconScanningPage>
               color: Colors.red,
             ),
     ];
-  }
-}
-
-class _ListView extends StatelessWidget {
-  const _ListView({
-    Key? key,
-    required this.beaconScanningState,
-  }) : super(key: key);
-
-  final BeaconScanningState beaconScanningState;
-
-  @override
-  Widget build(BuildContext context) {
-    return beaconScanningState.beacons.isEmpty
-        ? const Center(child: CircularProgressIndicator())
-        : ListView(
-            children: ListTile.divideTiles(
-              context: context,
-              tiles: beaconScanningState.beacons.map(
-                (beacon) {
-                  return ListTile(
-                    title: Text(
-                      beacon.proximityUUID,
-                      style: const TextStyle(fontSize: 15.0),
-                    ),
-                    subtitle: Row(
-                      mainAxisSize: MainAxisSize.max,
-                      children: [
-                        Flexible(
-                          child: Text(
-                            'Major: ${beacon.major}\nMinor: ${beacon.minor}',
-                            style: const TextStyle(fontSize: 13.0),
-                          ),
-                          flex: 1,
-                          fit: FlexFit.tight,
-                        ),
-                        Flexible(
-                          child: Text(
-                            'Accuracy: ${beacon.accuracy}m\nRSSI: ${beacon.rssi}',
-                            style: const TextStyle(fontSize: 13.0),
-                          ),
-                          flex: 2,
-                          fit: FlexFit.tight,
-                        )
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ).toList(),
-          );
   }
 }

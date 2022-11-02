@@ -299,3 +299,47 @@ class BeaconAdapter implements BeaconAdapterBase {
     return await flutterBeacon.isBroadcasting();
   }
 }
+
+//////////////////////////////////////////////////
+/// 書籍説明用
+//////////////////////////////////////////////////
+// /// ビーコンレンジングによる受信結果のStream
+// final beaconRangingStreamProvider =
+//     StreamProvider.autoDispose<RangingResult>((ref) {
+//   final bluetoothAuthStateFuture = ref.watch(bluetoothAuthStateFutureProvider);
+//   final adapter = ref.watch(beaconAdapterProvider);
+
+//   〜(省略)〜
+// });
+
+// // 権限取得
+// final bluetoothAuthStateFutureProvider =
+//     FutureProvider.autoDispose<BluetoothAuthState>((ref) {
+//   final adapter = ref.watch(beaconAdapterProvider);
+//   // bluetooth状態を監視してbluetoothがON/OFFされるたびに更新する
+//   final bluetoothStateStream = ref.watch(bluetoothStateStreamProvider);
+
+//   〜(省略)〜
+// });
+
+// // ビーコンScan初期化/停止
+// final initializeScanningFutureProvider =
+//     FutureProvider.autoDispose<void>((ref) {
+//   final adapter = ref.watch(beaconAdapterProvider);
+//   final bluetoothStateStream = ref.watch(bluetoothStateStreamProvider);
+
+//   〜(省略)〜
+  
+// });
+
+// // Bluetooth ON/OFFチェック
+// final bluetoothStateStreamProvider =
+//     StreamProvider.autoDispose<BluetoothState>((ref) {
+//   final adapter = ref.watch(beaconAdapterProvider);
+
+//   return adapter.listeningBluetoothState();
+// });
+
+// final beaconAdapterProvider = Provider.autoDispose<BeaconAdapterBase>((ref) {
+//   return BeaconAdapter();
+// });
