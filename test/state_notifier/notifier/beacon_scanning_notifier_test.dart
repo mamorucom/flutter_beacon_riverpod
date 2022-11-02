@@ -31,10 +31,7 @@ void main() {
       /// autoDisposeを使用するProviderは、container.readだけでは即座にdisposeされてしまうため、
       /// 以下のようにlistenしてあげることで、テスト終了までProviderが破棄されることなく動作させることができるようです。
       /// 参考;https://zenn.dev/omtians9425/articles/4a74f982788bdb
-      container
-          .listen<AsyncValue<List<Beacon>>>(
-              beaconListStreamProvider, (previous, next) {})
-          .read();
+      container.listen(beaconListStreamProvider, (previous, next) {}).read();
 
       // The first read if the loading state
       expect(
@@ -62,12 +59,6 @@ void main() {
     test('sortedBeaconListStreamProvider Test-並び替えできること', () async {
       final container = ProviderContainer(
         overrides: [
-          // beaconListStreamProvider.overrideWith(
-          //   AsyncValue.data([
-          //     dummyBeacons[0],
-          //     dummyBeacons[1],
-          //   ]),
-          // ),
           beaconListStreamProvider.overrideWith((ref) async* {
             yield [
               dummyBeacons[0],
@@ -115,39 +106,5 @@ void main() {
         ]),
       );
     });
-
-    // test('レンジング監視により、ダミーのビーコンを検出し、stateを更新できること', () async {
-    //   final mockBeaconAdapter = MockBeaconAdapterBase();
-
-    //   when(() => mockBeaconAdapter.listeningRanging())
-    //       .thenAnswer((_) => Stream.value(dummyBeacons));
-
-    //   final fakeBluetoothAuthNotifier =
-    //       FakeBluetoothAuthNotifier(BluetoothAuthState(
-    //     authorizationStatusOk: true,
-    //     locationServiceEnabled: true,
-    //     bluetoothEnabled: true,
-    //   ));
-
-    //   final container = ProviderContainer(
-    //     overrides: [
-    //       beaconAdapterProvider.overrideWithValue(mockBeaconAdapter),
-    //       bluetoothAuthStateProvider
-    //           .overrideWithValue(fakeBluetoothAuthNotifier),
-    //     ],
-    //   );
-
-    //   final beaconScanningState = container
-    //       .listen(beaconScanningStateProvider, (previous, next) {})
-    //       .read();
-    //   expect(beaconScanningState.beacons, []);
-
-    //   verify(() => mockBeaconAdapter.listeningRanging()).called(1);
-    //   verify(() => mockBeaconAdapter.startRanging(true)).called(1);
-
-    //   await Future.delayed(const Duration(seconds: 3));
-
-    //   expect(container.read(beaconScanningStateProvider).beacons, dummyBeacons);
-    // });
   });
 }
