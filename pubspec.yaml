@@ -3,7 +3,7 @@ description: A new Flutter project.
 
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 2.0.0+1
+version: 2.0.1+1
 
 environment:
   sdk: ">=2.17.6 <3.0.0"
@@ -15,7 +15,7 @@ dependencies:
   flutter_beacon: ^0.5.1
   flutter_hooks: ^0.18.5+1
   freezed_annotation: null
-  hooks_riverpod: ^2.0.0-dev.9
+  hooks_riverpod: ^2.1.1
   json_serializable: null
   mocktail: ^0.3.0
 

@@ -26,6 +26,13 @@ void main() {
         ],
       );
 
+      /// autoDisposeを使用するProviderは、container.readだけでは即座にdisposeされてしまうため、
+      /// 以下のようにlistenしてあげることで、テスト終了までProviderが破棄されることなく動作させることができるようです。
+      /// 参考;https://zenn.dev/omtians9425/articles/4a74f982788bdb
+      container
+          .listen(bluetoothStateStreamProvider, (previous, next) {})
+          .read();
+
       // The first read if the loading state
       expect(
         container.read(bluetoothStateStreamProvider),
@@ -54,20 +61,24 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           beaconAdapterProvider.overrideWithValue(mockBeaconAdapter),
-          bluetoothStateStreamProvider.overrideWithValue(
-            const AsyncData<BluetoothState>(BluetoothState.stateOff),
-          ),
+          bluetoothStateStreamProvider.overrideWith((ref) {
+            return Stream.value(BluetoothState.stateOff);
+          }),
         ],
       );
 
-      // The first read if the loading state
+      container
+          .listen(initializeScanningFutureProvider, (previous, next) {})
+          .read();
+
       expect(
         container.read(initializeScanningFutureProvider),
         const AsyncLoading<void>(),
       );
 
-      // ウェイト
-      await Future<void>.value();
+      /// Streamの結果を受け取るためのウェイトを確保しています。
+      await _refleshProcess(
+          () => container.refresh(initializeScanningFutureProvider));
 
       verifyNever(() => mockBeaconAdapter.initializeScanning());
     });
@@ -83,20 +94,23 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           beaconAdapterProvider.overrideWithValue(mockBeaconAdapter),
-          bluetoothStateStreamProvider.overrideWithValue(
-            const AsyncData<BluetoothState>(BluetoothState.stateOn),
-          ),
+          bluetoothStateStreamProvider.overrideWith((ref) {
+            return Stream.value(BluetoothState.stateOn);
+          }),
         ],
       );
 
-      // The first read if the loading state
+      container
+          .listen(initializeScanningFutureProvider, (previous, next) {})
+          .read();
+
       expect(
         container.read(initializeScanningFutureProvider),
         const AsyncLoading<void>(),
       );
 
-      // ウェイト
-      await Future<void>.value();
+      await _refleshProcess(
+          () => container.refresh(initializeScanningFutureProvider));
 
       verify(() => mockBeaconAdapter.initializeScanning()).called(1);
     });
@@ -112,20 +126,23 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           beaconAdapterProvider.overrideWithValue(mockBeaconAdapter),
-          bluetoothStateStreamProvider.overrideWithValue(
-            const AsyncData<BluetoothState>(BluetoothState.stateOn),
-          ),
+          bluetoothStateStreamProvider.overrideWith((ref) {
+            return Stream.value(BluetoothState.stateOn);
+          }),
         ],
       );
 
-      // The first read if the loading state
+      container
+          .listen(bluetoothAuthStateFutureProvider, (previous, next) {})
+          .read();
+
       expect(
         container.read(bluetoothAuthStateFutureProvider),
         const AsyncLoading<BluetoothAuthState>(),
       );
 
-      // ウェイト
-      await Future<void>.value();
+      await _refleshProcess(
+          () => container.refresh(bluetoothAuthStateFutureProvider));
 
       verify(() => mockBeaconAdapter.initializeScanning()).called(1);
       expect(
@@ -146,24 +163,25 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           beaconAdapterProvider.overrideWithValue(mockBeaconAdapter),
-          bluetoothAuthStateFutureProvider.overrideWithValue(
-            AsyncValue.data(BluetoothAuthState(
+          bluetoothAuthStateFutureProvider.overrideWith((ref) {
+            return Future.value(BluetoothAuthState(
               authorizationStatusOk: false,
               bluetoothEnabled: false,
               locationServiceEnabled: false,
-            )),
-          ),
+            ));
+          }),
         ],
       );
 
-      // The first read if the loading state
+      container.listen(beaconRangingStreamProvider, (previous, next) {}).read();
+
       expect(
         container.read(beaconRangingStreamProvider),
         const AsyncLoading<RangingResult>(),
       );
 
-      // ウェイト
-      await Future<void>.value();
+      await _refleshProcess(
+          () => container.refresh(beaconRangingStreamProvider));
 
       verifyNever(() => mockBeaconAdapter.watchRanging());
     });
@@ -180,24 +198,25 @@ void main() {
       var container = ProviderContainer(
         overrides: [
           beaconAdapterProvider.overrideWithValue(mockBeaconAdapter),
-          bluetoothAuthStateFutureProvider.overrideWithValue(
-            AsyncValue.data(BluetoothAuthState(
+          bluetoothAuthStateFutureProvider.overrideWith((ref) {
+            return Future.value(BluetoothAuthState(
               authorizationStatusOk: true,
               bluetoothEnabled: true,
               locationServiceEnabled: false,
-            )),
-          ),
+            ));
+          }),
         ],
       );
 
-      // The first read if the loading state
+      container.listen(beaconRangingStreamProvider, (previous, next) {}).read();
+
       expect(
         container.read(beaconRangingStreamProvider),
         const AsyncLoading<RangingResult>(),
       );
 
-      // ウェイト
-      await Future<void>.value();
+      await _refleshProcess(
+          () => container.refresh(beaconRangingStreamProvider));
 
       verifyNever(() => mockBeaconAdapter.watchRanging());
     });
@@ -214,24 +233,25 @@ void main() {
       var container = ProviderContainer(
         overrides: [
           beaconAdapterProvider.overrideWithValue(mockBeaconAdapter),
-          bluetoothAuthStateFutureProvider.overrideWithValue(
-            AsyncValue.data(BluetoothAuthState(
+          bluetoothAuthStateFutureProvider.overrideWith((ref) {
+            return Future.value(BluetoothAuthState(
               authorizationStatusOk: true,
               bluetoothEnabled: false,
               locationServiceEnabled: true,
-            )),
-          ),
+            ));
+          }),
         ],
       );
 
-      // The first read if the loading state
+      container.listen(beaconRangingStreamProvider, (previous, next) {}).read();
+
       expect(
         container.read(beaconRangingStreamProvider),
         const AsyncLoading<RangingResult>(),
       );
 
-      // ウェイト
-      await Future<void>.value();
+      await _refleshProcess(
+          () => container.refresh(beaconRangingStreamProvider));
 
       verifyNever(() => mockBeaconAdapter.watchRanging());
     });
@@ -247,24 +267,25 @@ void main() {
       var container = ProviderContainer(
         overrides: [
           beaconAdapterProvider.overrideWithValue(mockBeaconAdapter),
-          bluetoothAuthStateFutureProvider.overrideWithValue(
-            AsyncValue.data(BluetoothAuthState(
+          bluetoothAuthStateFutureProvider.overrideWith((ref) {
+            return Future.value(BluetoothAuthState(
               authorizationStatusOk: false,
               bluetoothEnabled: true,
               locationServiceEnabled: true,
-            )),
-          ),
+            ));
+          }),
         ],
       );
 
-      // The first read if the loading state
+      container.listen(beaconRangingStreamProvider, (previous, next) {}).read();
+
       expect(
         container.read(beaconRangingStreamProvider),
         const AsyncLoading<RangingResult>(),
       );
 
-      // ウェイト
-      await Future<void>.value();
+      await _refleshProcess(
+          () => container.refresh(beaconRangingStreamProvider));
 
       verifyNever(() => mockBeaconAdapter.watchRanging());
     });
@@ -281,24 +302,25 @@ void main() {
       var container = ProviderContainer(
         overrides: [
           beaconAdapterProvider.overrideWithValue(mockBeaconAdapter),
-          bluetoothAuthStateFutureProvider.overrideWithValue(
-            AsyncValue.data(BluetoothAuthState(
+          bluetoothAuthStateFutureProvider.overrideWith((ref) {
+            return Future.value(BluetoothAuthState(
               authorizationStatusOk: true,
               bluetoothEnabled: true,
               locationServiceEnabled: true,
-            )),
-          ),
+            ));
+          }),
         ],
       );
 
-      // The first read if the loading state
+      container.listen(beaconRangingStreamProvider, (previous, next) {}).read();
+
       expect(
         container.read(beaconRangingStreamProvider),
         const AsyncLoading<RangingResult>(),
       );
 
-      // ウェイト
-      await Future<void>.value();
+      await _refleshProcess(
+          () => container.refresh(beaconRangingStreamProvider));
 
       verify(() => mockBeaconAdapter.watchRanging()).called(1);
       expect(
@@ -307,4 +329,14 @@ void main() {
       );
     });
   });
+}
+
+// リフレッシュプロセス
+Future<void> _refleshProcess(Function() refresh) async {
+  // ウェイト
+  await Future<void>.value();
+  // リフレッシュしてデータを再取得
+  refresh();
+  // ウェイト
+  await Future<void>.value();
 }
