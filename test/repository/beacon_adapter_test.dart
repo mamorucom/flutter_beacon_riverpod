@@ -76,6 +76,7 @@ void main() {
         const AsyncLoading<void>(),
       );
 
+      /// Streamの結果を受け取るためのウェイトを確保しています。
       await _refleshProcess(
           () => container.refresh(initializeScanningFutureProvider));
 
@@ -334,7 +335,7 @@ void main() {
 Future<void> _refleshProcess(Function() refresh) async {
   // ウェイト
   await Future<void>.value();
-  // リフレッシュ
+  // リフレッシュしてデータを再取得
   refresh();
   // ウェイト
   await Future<void>.value();
